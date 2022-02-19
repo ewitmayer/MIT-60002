@@ -5,6 +5,7 @@
 # Time:
 
 from ps1_partition import get_partitions
+import time
 
 # ================================
 # Part A: Transporting Space Cows
@@ -134,9 +135,20 @@ def compare_cow_transport_algorithms():
     Returns:
     Does not return anything.
     """
-    # TODO: Your code here
-    pass
-
+    cow_datafile = 'ps1_cow_data.txt'
+    cows = load_cows(cow_datafile)
+    # testing greedy algorithm first
+    start = time.time()
+    greedy_result = greedy_cow_transport(cows)
+    end = time.time()
+    print("Execution time for greedy algorithm was ", (end - start))
+    print("Problem was solved within ",  len(greedy_result), " trips.")
+    # testing brute force algorithm afterwards
+    start = time.time()
+    brute_result = brute_force_cow_transport(cows)
+    end = time.time()
+    print("Execution time for brute force algorithm was ", (end - start))
+    print("Problem was solved within ", len(brute_result), " trips.")
 
 if __name__ == '__main__':
     cow_data = load_cows('ps1_cow_data.txt')
@@ -144,3 +156,4 @@ if __name__ == '__main__':
     print("-----------\ngreedy cow transport result: \n", result, "\n-----------")
     result = brute_force_cow_transport(cow_data)
     print("-----------\nbrute force cow transport result: \n", result, "\n-----------")
+    compare_cow_transport_algorithms()
