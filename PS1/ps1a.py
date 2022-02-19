@@ -61,8 +61,22 @@ def greedy_cow_transport(cows, limit=10):
     transported on a particular trip and the overall list containing all the
     trips
     """
-    # TODO: Your code here
-    pass
+    sorted_cows = sorted(cows.items(), key=lambda x: x[1], reverse=True)  # sort list in ascending order
+    result = []  # the main list
+    trip = 0
+    while len(sorted_cows) > 0:  # continue until all cows are gone
+        trip_limit = limit  # initial limit
+        result.append([])  # initiating inner list.
+        removed_cows = []  # list of cows already used
+        for cow in sorted_cows:
+            if cow[1] <= trip_limit:  # checking weight against limit
+                result[trip].append(cow[0])
+                removed_cows.append(sorted_cows.index(cow))
+                trip_limit -= cow[1]  # remove weight of cow from available limit
+        trip += 1
+        for cow_index in sorted(removed_cows, reverse=True):
+            sorted_cows.pop(cow_index)
+    return result
 
 # Problem 3
 
@@ -112,4 +126,6 @@ def compare_cow_transport_algorithms():
 
 
 if __name__ == '__main__':
-    dict = load_cows('ps1_cow_data.txt')
+    cows = load_cows('ps1_cow_data.txt')
+    result = greedy_cow_transport(cows)
+    print("greedy cow transport result: \n", result,"\n-----------")
