@@ -78,10 +78,9 @@ def greedy_cow_transport(cows, limit=10):
             sorted_cows.pop(cow_index)
     return result
 
-# Problem 3
 
-
-def brute_force_cow_transport(cows,limit=10):
+def brute_force_cow_transport(cows, limit=10):
+    # Problem 3
     """
     Finds the allocation of cows that minimizes the number of spaceship trips
     via brute force.  The brute force algorithm should follow the following method:
@@ -102,13 +101,27 @@ def brute_force_cow_transport(cows,limit=10):
     transported on a particular trip and the overall list containing all the
     trips
     """
-    # TODO: Your code here
-    pass
-        
-# Problem 4
+    cow_names = list(cows.keys())   # list of cow's names
+    cow_copy = cows                 # copy cow dictionary
+    result = []                     # save output to list then return
+    for part in get_partitions(cow_names):  # iterating over all partitions
+        over_weight_limit = False   # weight limit is reset for a new partition
+        for sublist in part:
+            weight = 0              # start each partition with empty weight
+            for cow in sublist:
+                weight += cow_copy[cow]     # add weight of the cows
+            if weight > limit:              # if the additional weight breaks the limit, end the loop
+                over_weight_limit = True    # the weights exceed the limit
+                break               # the solution does not work, end loop
+        if over_weight_limit is True:
+            continue
+        elif len(result) == 0 or len(result) > len(part):
+            result = part           # the partition is stored if no solution or if its shorter than stored result
+    return result
 
 
 def compare_cow_transport_algorithms():
+    # Problem 4
     """
     Using the data from ps1_cow_data.txt and the specified weight limit, run your
     greedy_cow_transport and brute_force_cow_transport functions here. Use the
@@ -128,4 +141,6 @@ def compare_cow_transport_algorithms():
 if __name__ == '__main__':
     cows = load_cows('ps1_cow_data.txt')
     result = greedy_cow_transport(cows)
-    print("greedy cow transport result: \n", result,"\n-----------")
+    print("-----------\ngreedy cow transport result: \n", result,"\n-----------")
+    result = brute_force_cow_transport(cows)
+    print("-----------\nbrute force cow transport result: \n", result, "\n-----------")
