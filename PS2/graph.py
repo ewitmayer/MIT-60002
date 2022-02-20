@@ -10,6 +10,7 @@ import unittest
 # A set of data structures to represent graphs
 #
 
+
 class Node(object):
     """Represents a node in the graph"""
     def __init__(self, name):
@@ -55,16 +56,19 @@ class Edge(object):
 
 class WeightedEdge(Edge):
     def __init__(self, src, dest, total_distance, outdoor_distance):
-        pass  # TODO
+        self.src = src
+        self.dest = dest
+        self.total_distance = total_distance
+        self.outdoor_distance = outdoor_distance
 
     def get_total_distance(self):
-        pass  # TODO
+        return self.total_distance
 
     def get_outdoor_distance(self):
-        pass  # TODO
+        return self.outdoor_distance
 
     def __str__(self):
-        pass  # TODO
+        return '{}->{} ({}, {})'.format(self.src, self.dest, self.total_distance, self.outdoor_distance)
 
 
 class Digraph(object):
@@ -90,14 +94,24 @@ class Digraph(object):
     def add_node(self, node):
         """Adds a Node object to the Digraph. Raises a ValueError if it is
         already in the graph."""
-        pass  # TODO
+        if self.has_node(node):
+            raise ValueError('node ' + str(node) + ' already in Digraph object')
+        else:
+            self.nodes.add(node)
 
     def add_edge(self, edge):
         """Adds an Edge or WeightedEdge instance to the Digraph. Raises a
         ValueError if either of the nodes associated with the edge is not
         in the  graph."""
-        pass  # TODO
-
+        edge_source = edge.get_source()
+        edge_destination = edge.get_destination()
+        if self.has_node(edge_source) and self.has_node(edge_destination):
+            if self.edges.get(edge_source) == None:
+                self.edges[edge_source] = {edge}
+            else:
+                self.edges[edge_source].add(edge)
+        else:
+            raise ValueError('All nodes associated with edge must be in graph')
 
 # ================================================================
 # Begin tests -- you do not need to modify anything below this line
