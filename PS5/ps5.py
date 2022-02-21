@@ -34,6 +34,7 @@ CITIES = [
 
 TRAINING_INTERVAL = range(1961, 2010)
 TESTING_INTERVAL = range(2010, 2016)
+global fig_num
 
 """
 Begin helper code
@@ -221,23 +222,17 @@ def evaluate_models_on_training(x, y, models):
         global fig_num
         pylab.figure(fig_num)
         degree = len(model) - 1
-        est_y = pylab.polyval(model, x)
-        r_sq = round(r_squared(y, est_y), 4)
-        pylab.plot(x, y, color='blue', marker='.', linestyle='-',
-                   label='Measurements'
-                   )
-        pylab.plot(x, est_y, color='red', label='Model')
+        estimated_y = pylab.polyval(model, x)
+        r_sqr = round(r_squared(y, estimated_y), 4)
+        pylab.plot(x, y, color='blue', marker='.', linestyle='-', label='Measurements')
+        pylab.plot(x, estimated_y, color='red', label='Model')
         pylab.xlabel('Year')
         pylab.ylabel('Temperature (C)')
         if degree > 1:
-            pylab.title(str(degree) + ' Degree Model with $R^2 =$ '
-                        + str(r_sq)
-                        )
+            pylab.title(str(degree) + ' Degree Model with $R^2 =$ ' + str(r_sqr))
         elif degree == 1:
-            se = round(se_over_slope(x, y, est_y, model), 4)
-            pylab.title('Linear  Model with $R^2 =$ ' + str(r_sq)
-                        + '\n$SE/Slope =$ ' + str(se)
-                        )
+            std_e = round(se_over_slope(x, y, estimated_y, model), 4)
+            pylab.title('Linear  Model with $R^2 =$ ' + str(r_sqr) + '\n$SE/Slope =$ ' + str(std_e))
         pylab.legend()
         pylab.show()
         fig_num += 1
@@ -363,6 +358,7 @@ def evaluate_models_on_testing(x, y, models):
         None
     """
     for model in models:
+        global fig_num
         pylab.figure(fig_num)
         degree = len(model) - 1
         estimate_y = pylab.polyval(model, x)
@@ -372,9 +368,7 @@ def evaluate_models_on_testing(x, y, models):
         pylab.xlabel('Year')
         pylab.ylabel('Temperature (C)')
         if degree > 1:
-            pylab.title(str(degree) + ' Degree Model with $RMSE =$ ' +
-                        str(model_rmse)
-                        )
+            pylab.title(str(degree) + ' Degree Model with $RMSE =$ ' + str(model_rmse))
         elif degree == 1:
             pylab.title('Linear  Model with $RMSE =$ ' + str(model_rmse))
         pylab.legend()
@@ -383,24 +377,60 @@ def evaluate_models_on_testing(x, y, models):
 
 
 if __name__ == '__main__':
+    global fig_num
     fig_num = 1
     climate = Climate('data.csv')
-    pla_training_years = pylab.array(TRAINING_INTERVAL)
-    pla_testing_years = pylab.array(TESTING_INTERVAL)
+    training_years = pylab.array(TRAINING_INTERVAL)
+    testing_years = pylab.array(TESTING_INTERVAL)
 
     # Part A.4 I
-    temps = []
+    temperatures = []
     for year in TRAINING_INTERVAL:
         temp = climate.get_daily_temp('NEW YORK', 1, 10, year)
-        temps.append(temp)
-    pla_temps = pylab.array(temps)
-    models = generate_models(pla_training_years, pla_temps, [1])
-    evaluate_models_on_training(pla_training_years, pla_temps, models)
+        temperatures.append(temp)
+    temperature_array = pylab.array(temperatures)
+    models = generate_models(training_years, temperature_array, [1])
+    evaluate_models_on_training(training_years, temperature_array, models)
     # Part A.4 II
-    temps = []
+    temperatures = []
     for year in TRAINING_INTERVAL:
         temp = pylab.average(climate.get_yearly_temp('NEW YORK', year))
-        temps.append(temp)
-    pla_temps = pylab.array(temps)
-    nyc_avg_models = generate_models(pla_training_years, pla_temps, [1])
-    evaluate_models_on_training(pla_training_years, pla_temps, nyc_avg_models)
+        temperatures.append(temp)
+    temperature_array = pylab.array(temperatures)
+    nyc_avg_models = generate_models(training_years, temperature_array, [1])
+    evaluate_models_on_training(training_years, temperature_array, nyc_avg_models)
+
+    # Part B
+    cities_avg = gen_cities_avg(climate, CITIES, training_years)
+    avg_models = generate_models(training_years, cities_avg, [1])
+    evaluate_models_on_training(training_years, cities_avg, avg_models)
+    print('avg_models', avg_models)
+
+    # Part C
+    cities_avg = gen_cities_avg(climate, CITIES, training_years)
+    mvg_avg = moving_average(cities_avg, 5)
+    mvg_avg_models = generate_models(training_years, mvg_avg, [1])
+    evaluate_models_on_training(training_years, mvg_avg, mvg_avg_models)
+
+    # Part D.2
+    # Generate Models
+    cities_avg = gen_cities_avg(climate, CITIES, training_years)
+    mvg_avg = moving_average(cities_avg, 5)
+    future_models = generate_models(training_years, mvg_avg, [2, 20])
+    evaluate_models_on_training(training_years, mvg_avg, future_models)
+    future_models = mvg_avg_models + future_models
+
+    # Predict Results
+    future_temps = gen_cities_avg(climate, CITIES, testing_years)
+    evaluate_models_on_testing(testing_years, future_temps, future_models)
+
+    # Bonus: use model from NYC to predict
+    evaluate_models_on_testing(testing_years, future_temps, nyc_avg_models)
+    nyc_future_temps = gen_cities_avg(climate, ['NEW YORK'], testing_years)
+    evaluate_models_on_testing(testing_years, nyc_future_temps, nyc_avg_models)
+
+    # Part E
+    std_devs = gen_std_devs(climate, CITIES, TRAINING_INTERVAL)
+    mvg_avg_std = moving_average(std_devs, 5)
+    std_models = generate_models(TRAINING_INTERVAL, mvg_avg_std, [1])
+    evaluate_models_on_training(training_years, mvg_avg_std, std_models)
